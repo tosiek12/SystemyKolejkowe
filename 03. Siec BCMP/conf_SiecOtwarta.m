@@ -23,7 +23,7 @@ siecOtwarta.P_out{1} = [.3, 0, 0];
 siecOtwarta.P_out{2} = [.1, 0, 0]; 
 
 %Wspolczynnik przychodzenia zgloszen danej klasy
-siecOtwarta.lambdas = zeros(siecOtwarta.R,1); 
+siecOtwarta.lambdas = zeros(siecOtwarta.R, 1); 
 siecOtwarta.lambdas(1) = 1; 
 siecOtwarta.lambdas(2) = 1; 
 
