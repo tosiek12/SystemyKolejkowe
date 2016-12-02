@@ -1,7 +1,7 @@
 %% Konfiguracja - Opis sieci:
 %example 7.7
 %(Ilosc stacji, Ilosc klas, Typ sieci (open/close))
-siec = Network_nClass(4, 2, 'open');
+siec = Network_nClass(4, 2, 'close');
 
 %% Opis Stacji:
 %Typy stacji (1/2/3/4)
@@ -25,12 +25,18 @@ siec.P{2} = [0, .5, .5, 0;
             1, 0 , 0, 0];
                 
 %Prawdopodobienstwa wejœcia zgloszenia z zewnatrz do danej stacji
-siec.P_in{1} = [0, 0, 0, 1];
-siec.P_in{2} = [0, 0, 0, 1];
+siec.P_in{1} = [0;
+                0;
+                0;
+                1];
+siec.P_in{2} = [0;
+                0;
+                0;
+                1];
 %Wspolczynnik przychodzenia zgloszen danej klasy
 siec.lambda_in{1} = 4;
 siec.lambda_in{2} = 4;
 
 %Prawdopodobienstwa wyjœcia zgloszenia na zewnatrz z danej stacji
-siec.P_out{1} = [0, 0, 3, 0];
-siec.P_out{2} = [0, 0, 3, 0];
+siec.P_out{1} = [0; 0; 3; 0];
+siec.P_out{2} = [0; 0; 3; 0];

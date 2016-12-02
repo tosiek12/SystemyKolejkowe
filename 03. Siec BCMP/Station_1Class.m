@@ -1,6 +1,5 @@
 classdef Station_1Class
-    %STATION Summary of this class goes here
-    %   Detailed explanation goes here
+    %% Parametry stacji
     properties ( Access = public )
         Mi,
         m,
@@ -11,8 +10,25 @@ classdef Station_1Class
         Type
     end
     
+    %% Konstruktor
+    methods ( Access = public )
+        function obj = Station_1Class(id, type)
+          if nargin >= 2
+             if isnumeric(type) && isnumeric(id)
+                obj.Type = type;
+                obj.Id = id;
+             else
+                error('Value must be numeric')
+             end
+          end
+        end
+    end
+    
+    
+    %% Funkcje uzywane w obliczeniach prawdopodobienst
+    %(prawdopodobienstwo zerowe, skladowe do obliczen itd.)
+    %funkcje dla typ 1 - M/M/m/FIFO/inf
     methods ( Access = private )
-        %funkcje dla typ 1 - M/M/m/FIFO/inf
         function r = p0_1(obj)
             res_sum = 0;
             for i = 0:(obj.m-1)
@@ -29,29 +45,72 @@ classdef Station_1Class
         function r = p_1_overM(obj, k) 
             r = obj.p0_1()*power(obj.lambda/obj.Mi, k)/(factorial(obj.m)*power(obj.m,k-obj.m));
         end
+    end
+    %funkcje dla typ 2
+    methods ( Access = private )
+        function r = p0_2(obj)
+            res_sum = 0;
+            for i = 0:(obj.m-1)
+                res_sum = res_sum + obj.p0_2_el(i);
+            end
+            r = inv(res_sum + power((obj.lambda/obj.Mi),obj.m)/(factorial(obj.m - 1)*(obj.m-obj.lambda/obj.Mi)));
+        end
+        function r = p0_2_el(obj, k)
+            r = power(obj.lambda/obj.Mi, k)/factorial(k);
+        end
+        function r = p_2_upToM(obj, k) 
+            r = obj.p0_2()*power(obj.lambda/obj.Mi, k)/factorial(k);
+        end
+        function r = p_2_overM(obj, k) 
+            r = obj.p0_2()*power(obj.lambda/obj.Mi, k)/(factorial(obj.m)*power(obj.m,k-obj.m));
+        end
         
-        
-        %funkcje dla typ 2
-        
-        %funkcje dla typ 3
+       
+    end
+    %funkcje dla typ 3
+    methods ( Access = private )
         function r = p0_3(obj)
+            res_sum = 0;
+            for i = 0:(obj.m-1)
+                res_sum = res_sum + obj.p0_3_el(i);
+            end
+            r = inv(res_sum + power((obj.lambda/obj.Mi),obj.m)/(factorial(obj.m - 1)*(obj.m-obj.lambda/obj.Mi)));
             r = e^-obj.rho;
         end
-        %funkcje dla typ 4
-        
-    end
-    methods ( Access = public )
-        function obj = Station_1Class(id, type)
-          if nargin >= 2
-             if isnumeric(type) && isnumeric(id)
-                obj.Type = type;
-                obj.Id = id;
-             else
-                error('Value must be numeric')
-             end
-          end
+        function r = p0_3_el(obj, k)
+            r = power(obj.lambda/obj.Mi, k)/factorial(k);
         end
-        
+        function r = p_3_upToM(obj, k) 
+            r = obj.p0_3()*power(obj.lambda/obj.Mi, k)/factorial(k);
+        end
+        function r = p_3_overM(obj, k) 
+            r = obj.p0_3()*power(obj.lambda/obj.Mi, k)/(factorial(obj.m)*power(obj.m,k-obj.m));
+        end
+    end
+    %funkcje dla typ 4
+    methods ( Access = private )
+        function r = p0_4(obj)
+            res_sum = 0;
+            for i = 0:(obj.m-1)
+                res_sum = res_sum + obj.p0_4_el(i);
+            end
+            r = inv(res_sum + power((obj.lambda/obj.Mi),obj.m)/(factorial(obj.m - 1)*(obj.m-obj.lambda/obj.Mi)));
+            r = e^-obj.rho;
+        end
+        function r = p0_4_el(obj, k)
+            r = power(obj.lambda/obj.Mi, k)/factorial(k);
+        end
+        function r = p_4_upToM(obj, k) 
+            r = obj.p0_4()*power(obj.lambda/obj.Mi, k)/factorial(k);
+        end
+        function r = p_4_overM(obj, k) 
+            r = obj.p0_4()*power(obj.lambda/obj.Mi, k)/(factorial(obj.m)*power(obj.m,k-obj.m));
+        end
+     end
+    
+    
+    %% Podstawowe parametry
+    methods ( Access = public )
         function r = p(obj, k)
             if(obj.Type == 1)
                 if(k>=0 && k<=obj.m-1)
@@ -100,16 +159,21 @@ classdef Station_1Class
                 r = 0;
             end
         end
+    end
+    
+    %% Regula littla:
+    methods ( Access = public )
         
-        %Regula littla:
         function r = W(obj)
            r = obj.Q/obj.lambda; 
         end
         function r = T(obj)
             r = obj.K/obj.lambda;
         end
-        
-        %Inne parametry:
+    end
+    
+    %% Inne parametry:
+    methods ( Access = public )    
         function rho = rho(obj)
            rho = obj.lambda/obj.Mi; 
         end

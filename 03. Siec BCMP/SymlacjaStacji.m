@@ -6,7 +6,7 @@ cd('C:\Users\Antonio-laptop\Documents\Studia\SystemyKolejkowe\03. Siec BCMP\')
 run('conf_Stacje');
 
 %% Stworz stacje na podstawie konfiguracji:
-listOfStations= Station_1Class(0,0); %initialize 
+listOfStations= Station_1Class(0, 0); %initialize 
 for i = 1:N
     listOfStations(i) = Station_1Class(i, Station_types(1, i));
     listOfStations(i).Mi = Station_Mi(i);
