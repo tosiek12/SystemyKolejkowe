@@ -3,11 +3,13 @@ classdef Station_1Class
     properties ( Access = public )
         Mi,
         m,
-        lambda
-    end
-    properties ( Access = private )
+        lambda,
+        
         Id,
         Type
+    end
+    properties ( Access = private )
+        
     end
     
     %% Konstruktor

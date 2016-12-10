@@ -15,16 +15,26 @@ for i = 1:N
 end
 
 %% Oblicz parametry:
-%Zadanie 1:
-s1 = listOfStations(1);
-s1.p(0)
-s1.W
-s1.T
+% %Zadanie 1:
+% s1 = listOfStations(1);
+% s1.p(0)
+% s1.W
+% s1.T
+% 
+% %Zadanie 2:
+% s1 = listOfStations(2);
+% msg = sprintf('pi(0) = %.2d - %.2d',(s1.p(0)),(1-s1.rho));
+% msg = sprintf('pi(N>=2) = %.2d',1-(s1.p(0)+s1.p(1)));
+% disp(msg);
+% s1.W
+% s1.T
 
-%Zadanie 2:
-s1 = listOfStations(2);
-msg = sprintf('pi(0) = %.2d - %.2d',(s1.p(0)),(1-s1.rho));
-msg = sprintf('pi(N>=2) = %.2d',1-(s1.p(0)+s1.p(1)));
-disp(msg);
-s1.W
-s1.T
+%Zadanie 3 - :
+s1 = listOfStations(3);
+%msg = sprintf('pi(0) = %.2d - %.2d',(s1.p(0)),(1-s1.rho));
+%msg = sprintf('pi(N>=2) = %.2d',1-(s1.p(0)+s1.p(1)));
+%disp(msg);
+disp('    Lambda, mi, m');
+disp([s1.lambda, s1.Mi, s1.m]);
+disp('    Rho, K');
+disp([s1.rho, s1.K]);

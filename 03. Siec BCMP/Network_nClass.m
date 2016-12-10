@@ -15,6 +15,9 @@ classdef Network_nClass<handle
         
         %Ilosc zgloszen danej klasy w systemie w sieci zamknietej
         K_initial
+        
+        %dla fixa:
+        stations_lambda_current,
     end
     properties ( Access = private )        
         N,
@@ -38,6 +41,9 @@ classdef Network_nClass<handle
                 obj.P_out = {};
                 obj.stations_Mi = {};
                 obj.K_initial = {};
+                
+                %Set initial values as table:
+                obj.stations_lambda_current = [];
             else
                 error('Must be 4 arguments!')
             end
@@ -73,10 +79,12 @@ classdef Network_nClass<handle
         end
         
         function station = getStation(obj, iKlasa, iStacja)
+            
             station = Station_1Class(iStacja, obj.stations_types(iStacja));
             station.Mi = obj.stations_Mi{iKlasa}(iStacja);
             station.m = obj.stations_m(iStacja);
-            station.lambda = obj.stations_lambda{iKlasa}(iStacja);
+            
+            station.lambda = obj.stations_lambda(iKlasa)*obj.stations_visitRatio{iKlasa}(iStacja);
         end
     end
     
@@ -106,50 +114,82 @@ classdef Network_nClass<handle
         %Step2:Fixed Point Iteration:
         function lambda_final = calculateLambdas_close(obj)
             %Init lambda:
-            lambda_current = {};
-            for i = 1:obj.R
-                lambda_current{i} = ones(obj.N, 1).*10^-5;
+            lambda_current = ones(obj.R, 1).*10^-5;
+            %Do fix magic
+            i = 1;
+            delta = 1;
+            while i<100 && delta>10^-5
+                lambda_prev = lambda_current;
+                res = obj.fix(lambda_current);
+                for iKlasa = 1:obj.R
+                    lambda_current(iKlasa) = obj.K_initial{iKlasa}/sum(res{iKlasa});
+                end
+                delta = sqrt(sum((lambda_prev - lambda_current).*(lambda_prev - lambda_current)));
+                disp([i, lambda_current, delta]);
+                
+                i = i + 1;
             end
             
-            %Do fix magic
-            
             %assign result:
-            obj.stations_lambda{i} = ones(obj.N, 1).*10^-5;  %dummy
-            
-            lambda_final = obj.stations_lambda;
+            obj.stations_lambda = lambda_current;
+            lambda_final = lambda_current;
         end
         
         function res = fix(obj, lambda_current)
-            %pomocnicze zmienne:
-            stations_LambdaInversed = diag((inv(diag(lambda_current))))';
-            
             %dla ka¿dej klasy
-            res = cells(obj.R, 1);
+            res = cell(obj.R, 1);
             for iKlasa = 1:obj.R
                 %dla ka¿dej stacji
                 fix_stacje = zeros(obj.N, 1);
                 for jStacja = 1:obj.N
                         if (obj.stations_types(jStacja) == 1 && obj.stations_m(jStacja) == 1) || obj.stations_types(jStacja) == 2 || obj.stations_types(jStacja) == 4
-                             licznik = obj.visitRatios{iKlasa}(jStacja)/obj.stations_mi{iKlasa}(jStacja);
-                             mianownik = 1-()*obj.rho
-                             fix_stacje(jStacja)
+                             licznik = obj.visitRatios{iKlasa}(jStacja)/obj.stations_Mi{iKlasa}(jStacja);
+                             mianownik = 1-((obj.K_initial{iKlasa}-1)/obj.K_initial{iKlasa})*obj.fix_rho(jStacja, lambda_current);
+                             fix_stacje(jStacja) = licznik/mianownik;
                         elseif obj.stations_types(jStacja) == 1 && obj.stations_m(jStacja) > 1
+                            m0 = obj.visitRatios{iKlasa}(jStacja)/obj.stations_Mi{iKlasa}(jStacja);
+                            
+                            licznik = obj.visitRatios{iKlasa}(jStacja)/(obj.stations_Mi{iKlasa}(jStacja)*obj.stations_m(jStacja));
+                            mianownik = 1-((obj.K_total-obj.stations_m(jStacja)-1)/(obj.K_total-obj.stations_m(jStacja)))*obj.fix_rho(jStacja, lambda_current);
+                            fix_stacje(jStacja) = m0 + licznik/mianownik*obj.p_mi(jStacja, lambda_current);
                             
                         elseif obj.stations_types(jStacja) == 3
-                            fix_stacje(jStacja) = obj.visitRatios{iKlasa}.*obj.stations_LambdaInversed;
+                            
+                            fix_stacje(jStacja) = obj.visitRatios{iKlasa}(jStacja)./obj.stations_Mi{iKlasa}(jStacja);
                         end
                 end
                 res{iKlasa} = fix_stacje;
             end
         end
         
-        function res = p_mi(obj, lambda_current)
-            firsPart = '';
-            factorial
+        function res = p_mi(obj, jStacja, lambda_current)
+            rho_i = obj.fix_rho(jStacja, lambda_current);
+            m_i = obj.stations_m(jStacja);
+            
+            first = power(m_i*rho_i, m_i)/(factorial(m_i)*(1-rho_i));
+            
+            den_sum = 0;
+            for k = 0:m_i-1
+               den_sum = den_sum + power(m_i*rho_i, k)/factorial(k) + power(m_i*rho_i, m_i)/factorial(m_i)*(1/(1-rho_i));
+            end
+            
+            res = first/den_sum;
         end
         
-        function res = rho(obj, iStacja, lambda)
-            res = lambda/(obj.stations_m(iStacja)*obj.stations_Mi(iStacja));
+        function res = fix_rho(obj, jStacja, lambda_current)
+            res = 0;
+            for iKlasa = 1:obj.R
+                denominator_inversed = obj.inversedValueOfVector(obj.stations_Mi{iKlasa}.*obj.stations_m);
+                fix_rho_ir = lambda_current(iKlasa) .* obj.visitRatios{iKlasa} .* (denominator_inversed);
+                res = res + fix_rho_ir(jStacja);
+            end
+        end
+        
+        function res = K_total(obj)
+            res = 0;
+            for iKlasa =1:obj.R
+                res =  res + obj.K_initial{iKlasa};
+            end
         end
     end
     
@@ -165,5 +205,11 @@ classdef Network_nClass<handle
         end
     end
     
+    %% Auxilary function:    
+    methods (Access = private)
+        function res = inversedValueOfVector(obj, vect)
+           res =  diag((inv(diag(vect))));
+        end
+    end
 end
 
