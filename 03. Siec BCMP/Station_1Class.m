@@ -24,11 +24,11 @@ classdef Station_1Class
         end
     end
     
-    
     %% Funkcje uzywane w obliczeniach prawdopodobienst
     %(prawdopodobienstwo zerowe, skladowe do obliczen itd.)
-    %funkcje dla typ 1 - M/M/m/FIFO/inf
+    %funkcje dla typ 1 - M/M/m/FIFO/inf (sta³e mi)
     methods ( Access = private )
+        %Prawdopodob. zerowe
         function r = p0_1(obj)
             res_sum = 0;
             for i = 0:(obj.m-1)
@@ -36,81 +36,64 @@ classdef Station_1Class
             end
             r = inv(res_sum + power((obj.lambda/obj.Mi),obj.m)/(factorial(obj.m - 1)*(obj.m-obj.lambda/obj.Mi)));
         end
+        %Funkcja pomocnicza do prawdop. zerowego
         function r = p0_1_el(obj, k)
             r = power(obj.lambda/obj.Mi, k)/factorial(k);
         end
-        function r = p_1_upToM(obj, k) 
+        
+        %Prawdopodob. k
+        function r = p_1_upToM(obj, k)
             r = obj.p0_1()*power(obj.lambda/obj.Mi, k)/factorial(k);
         end
         function r = p_1_overM(obj, k) 
             r = obj.p0_1()*power(obj.lambda/obj.Mi, k)/(factorial(obj.m)*power(obj.m,k-obj.m));
         end
     end
-    %funkcje dla typ 2
+    %funkcje dla typ 2 - M/G/1/PS (processor sharing)
     methods ( Access = private )
+        %Prawdopodob. zerowe
         function r = p0_2(obj)
-            res_sum = 0;
-            for i = 0:(obj.m-1)
-                res_sum = res_sum + obj.p0_2_el(i);
-            end
-            r = inv(res_sum + power((obj.lambda/obj.Mi),obj.m)/(factorial(obj.m - 1)*(obj.m-obj.lambda/obj.Mi)));
-        end
-        function r = p0_2_el(obj, k)
-            r = power(obj.lambda/obj.Mi, k)/factorial(k);
-        end
-        function r = p_2_upToM(obj, k) 
-            r = obj.p0_2()*power(obj.lambda/obj.Mi, k)/factorial(k);
-        end
-        function r = p_2_overM(obj, k) 
-            r = obj.p0_2()*power(obj.lambda/obj.Mi, k)/(factorial(obj.m)*power(obj.m,k-obj.m));
+            r = 0;
         end
         
-       
-    end
-    %funkcje dla typ 3
-    methods ( Access = private )
-        function r = p0_3(obj)
-            res_sum = 0;
-            for i = 0:(obj.m-1)
-                res_sum = res_sum + obj.p0_3_el(i);
-            end
-            r = inv(res_sum + power((obj.lambda/obj.Mi),obj.m)/(factorial(obj.m - 1)*(obj.m-obj.lambda/obj.Mi)));
-            r = e^-obj.rho;
-        end
-        function r = p0_3_el(obj, k)
-            r = power(obj.lambda/obj.Mi, k)/factorial(k);
-        end
-        function r = p_3_upToM(obj, k) 
-            r = obj.p0_3()*power(obj.lambda/obj.Mi, k)/factorial(k);
-        end
-        function r = p_3_overM(obj, k) 
-            r = obj.p0_3()*power(obj.lambda/obj.Mi, k)/(factorial(obj.m)*power(obj.m,k-obj.m));
+        %Prawdopodob. k
+        function r = p_2_overM(obj, k) 
+            r = 0;
         end
     end
-    %funkcje dla typ 4
-    methods ( Access = private )
-        function r = p0_4(obj)
-            res_sum = 0;
-            for i = 0:(obj.m-1)
-                res_sum = res_sum + obj.p0_4_el(i);
-            end
-            r = inv(res_sum + power((obj.lambda/obj.Mi),obj.m)/(factorial(obj.m - 1)*(obj.m-obj.lambda/obj.Mi)));
-            r = e^-obj.rho;
-        end
-        function r = p0_4_el(obj, k)
-            r = power(obj.lambda/obj.Mi, k)/factorial(k);
-        end
-        function r = p_4_upToM(obj, k) 
-            r = obj.p0_4()*power(obj.lambda/obj.Mi, k)/factorial(k);
-        end
-        function r = p_4_overM(obj, k) 
-            r = obj.p0_4()*power(obj.lambda/obj.Mi, k)/(factorial(obj.m)*power(obj.m,k-obj.m));
-        end
-     end
     
+    %funkcje dla typ 3 - M/M/inf
+    methods ( Access = private )
+        %Prawdopodob. zerowe
+        function r = p0_3(obj)
+            r = e^(-obj.rho);
+        end
+        
+        %Prawdopodob. k
+        function r = p_3(obj, k)
+            r = obj.p0_3()*power(obj.rho, k)/factorial(k);
+        end
+    end
+    
+    %funkcje dla typ 4 - M/G/1/LIFO-PR (z priorytetami - obs³uga przerywana
+    %gdy jes zgloszenie z wyzszym priorytetem)
+    %ToDo: znaleŸæ i uzupe³niæ wzory
+    methods ( Access = private )
+        %Prawdopodob. zerowe
+        function r = p0_4(obj)
+            r = 0;
+        end
+        
+        %Prawdopodob. k
+        function r = p_4(obj, k) 
+            r = 0;
+        end
+    end
     
     %% Podstawowe parametry
     methods ( Access = public )
+        %Zrobione dla typu1 i typu3
+        
         function r = p(obj, k)
             if(obj.Type == 1)
                 if(k>=0 && k<=obj.m-1)
@@ -119,11 +102,11 @@ classdef Station_1Class
                     r = obj.p_1_overM(k);
                 end
             elseif(obj.Type == 2)
-                r = 2*K;
+                r = 0;
             elseif(obj.Type == 3)
                 r = obj.p0_3*(obj.rho^k)/factorial(k);
             elseif(obj.Type == 4)
-                r = 2*K;
+                r = 0;
             end
         end
         function r = K(obj)
@@ -163,7 +146,6 @@ classdef Station_1Class
     
     %% Regula littla:
     methods ( Access = public )
-        
         function r = W(obj)
            r = obj.Q/obj.lambda; 
         end

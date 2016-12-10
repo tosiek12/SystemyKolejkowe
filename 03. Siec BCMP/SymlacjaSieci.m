@@ -11,7 +11,7 @@ siec
 
 %% Oblicz parametry:
 lambdas = siec.calculateLambdas()
-%siec.K(2, 1)
+siec.K(2, 1)
 
 
 %% Oblicz parametry - siec zamknieta
@@ -22,3 +22,4 @@ lambdas = siec.calculateLambdas()
 %3. Perf measures:
 %4. Marginal probabilities:
 %5. State probabilities:
+
