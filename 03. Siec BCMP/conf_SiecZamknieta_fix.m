@@ -1,5 +1,4 @@
 %% Konfiguracja - Opis sieci:
-%example 7.7
 %(Ilosc stacji, Ilosc klas, Typ sieci (open/close))
 siec = Network_nClass(4, 1, 'close');
 

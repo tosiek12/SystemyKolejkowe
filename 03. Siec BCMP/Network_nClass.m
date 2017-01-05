@@ -41,6 +41,7 @@ classdef Network_nClass<handle
                 obj.P_out = {};
                 obj.stations_Mi = {};
                 obj.K_initial = {};
+                obj.stations_lambda = {};
                 
                 %Set initial values as table:
                 obj.stations_lambda_current = [];
@@ -52,6 +53,37 @@ classdef Network_nClass<handle
     
     %% Common functions:
     methods ( Access = public )
+        function lambda_final = calculateLambdas(obj)
+			obj.visitRatios();
+            if strcmp(obj.Type,'open') > 0 
+                lambda_final = obj.calculateLambdas_open;
+            else 
+                lambda_final = obj.calculateLambdas_close;
+            end
+        end
+        
+        function station = getStation(obj, iKlasa, iStacja)
+            
+            station = Station_1Class(iStacja, obj.stations_types(iStacja));
+             
+            station.Mi = obj.stations_Mi{iKlasa}(iStacja);
+            station.m = obj.stations_m(iStacja);
+            
+            if strcmp(obj.Type,'open') > 0 
+                
+                station.lambda = obj.stations_lambda{iKlasa}(iStacja);
+            else 
+                station.lambda = obj.stations_lambda(iKlasa)*obj.stations_visitRatio{iKlasa}(iStacja);
+            end
+            
+            %W wzorach dla stacji mamy lambda 
+            %station.lambda = station.lambda * obj.stations_m(iStacja);
+        end
+        
+        function r = isClosed(obj)
+           r = strcmp(obj.Type,'close');
+        end
+        
         function v = visitRatios(obj)
             for i = 1:size(obj.P, 2)
 				if strcmp(obj.Type,'open') > 0 
@@ -68,46 +100,78 @@ classdef Network_nClass<handle
             end
             v = obj.stations_visitRatio;
         end
-		
-        function lambda_final = calculateLambdas(obj)
-			obj.visitRatios();
-            if strcmp(obj.Type,'open') > 0 
-                lambda_final = obj.calculateLambdas_open;
-            else 
-                lambda_final = obj.calculateLambdas_close;
+        function r = stations_lambda_vector(obj) 
+            r = zeros(obj.R, 1);
+            for i = 1:obj.R
+                r(i) = obj.stations_lambda{i};
             end
-        end
-        
-        function station = getStation(obj, iKlasa, iStacja)
-            
-            station = Station_1Class(iStacja, obj.stations_types(iStacja));
-            station.Mi = obj.stations_Mi{iKlasa}(iStacja);
-            station.m = obj.stations_m(iStacja);
-            
-            station.lambda = obj.stations_lambda(iKlasa)*obj.stations_visitRatio{iKlasa}(iStacja);
         end
     end
     
     %% Podstawowe parametry
     methods ( Access = public)
-        function r = p(obj, iKlasa, iStacja, k)
-            stacja = obj.getStation(iKlasa, iStacja);
+        function r = p(obj, iKlasa, jStacja, k)
+            stacja = obj.getStation(iKlasa, jStacja);
             r = stacja.p(k);
         end
-        function r = K(obj, iKlasa, iStacja)
-            stacja = obj.getStation(iKlasa, iStacja);
-            r = stacja.K();
+        function r = K(obj, iKlasa, jStacja)
+            if strcmp(obj.Type,'open') > 0 
+                r = obj.Kir_open(iKlasa, jStacja);
+            else
+                r = obj.Kir_close(iKlasa, jStacja);
+            end
         end
-        function r = Q(obj, iKlasa, iStacja)
-            stacja = obj.getStation(iKlasa, iStacja);
-            r = stacja.Q();
-        end
-        function r = m0(obj, iKlasa, iStacja)
-            stacja = obj.getStation(iKlasa, iStacja);
-            r = stacja.m0();
-        end 
-    end
+        
+        function r = Q(obj, iKlasa, jStacja)
+            if strcmp(obj.Type,'open') > 0 
+                stacja = obj.getStation(iKlasa, jStacja);
+                r = stacja.Q();
+            else
+                %Dla sieci zamknietej mamy inne wzory:
+                
+            end
             
+        end
+        function r = m0(obj, iKlasa, jStacja)
+            stacja = obj.getStation(iKlasa, jStacja);
+            r = stacja.m0();
+        end
+        
+        function r = rho(obj, iKlasa, jStacja)
+            if strcmp(obj.Type,'open') > 0 
+                %stacja = obj.getStation(iKlasa, jStacja);
+                %r = stacja.rho;
+                
+                denominator_inversed = obj.inversedValueOfVector(obj.stations_Mi{iKlasa}.*obj.stations_m);
+                rho_ir = obj.stations_lambda{iKlasa} .* (denominator_inversed);                
+                r = rho_ir(jStacja);
+            else
+                denominator_inversed = obj.inversedValueOfVector(obj.stations_Mi{iKlasa}.*obj.stations_m);
+                rho_ir = obj.stations_lambda{iKlasa} .* obj.visitRatios{iKlasa} .* (denominator_inversed);                
+                r = rho_ir(jStacja);
+            end
+        end
+        
+        function r = lambda(obj, iKlasa, jStacja)
+            if strcmp(obj.Type,'open') > 0 
+                r = obj.stations_lambda{iKlasa}(jStacja);
+            else
+                r = obj.stations_lambda{iKlasa}*obj.stations_visitRatio{iKlasa}(jStacja);
+            end
+        end
+        
+    end
+    
+    % Regula littla:
+    methods ( Access = public )
+        function r = W(obj, iKlasa, iStacja)
+           r = obj.Q(iKlasa, iStacja)/obj.stations_lambda(iKlasa, iStacja); 
+        end
+        function r = T(obj, iKlasa, iStacja)
+            r = obj.K(iKlasa, iStacja)/obj.stations_lambda(iKlasa, iStacja);
+        end
+    end
+    
     %% Closed network:
     methods ( Access = private )      
         
@@ -125,13 +189,16 @@ classdef Network_nClass<handle
                     lambda_current(iKlasa) = obj.K_initial{iKlasa}/sum(res{iKlasa});
                 end
                 delta = sqrt(sum((lambda_prev - lambda_current).*(lambda_prev - lambda_current)));
-                disp([i, lambda_current, delta]);
+                
+                %disp([i, lambda_current, delta]);
                 
                 i = i + 1;
             end
             
             %assign result:
-            obj.stations_lambda = lambda_current;
+            for i = 1:obj.R
+                obj.stations_lambda{i} = lambda_current(i);
+            end
             lambda_final = lambda_current;
         end
         
@@ -144,13 +211,13 @@ classdef Network_nClass<handle
                 for jStacja = 1:obj.N
                         if (obj.stations_types(jStacja) == 1 && obj.stations_m(jStacja) == 1) || obj.stations_types(jStacja) == 2 || obj.stations_types(jStacja) == 4
                              licznik = obj.visitRatios{iKlasa}(jStacja)/obj.stations_Mi{iKlasa}(jStacja);
-                             mianownik = 1-((obj.K_initial{iKlasa}-1)/obj.K_initial{iKlasa})*obj.fix_rho(jStacja, lambda_current);
+                             mianownik = 1-((obj.K_total-1)/obj.K_total)*obj.rhoInternal(jStacja, lambda_current);
                              fix_stacje(jStacja) = licznik/mianownik;
                         elseif obj.stations_types(jStacja) == 1 && obj.stations_m(jStacja) > 1
                             m0 = obj.visitRatios{iKlasa}(jStacja)/obj.stations_Mi{iKlasa}(jStacja);
                             
                             licznik = obj.visitRatios{iKlasa}(jStacja)/(obj.stations_Mi{iKlasa}(jStacja)*obj.stations_m(jStacja));
-                            mianownik = 1-((obj.K_total-obj.stations_m(jStacja)-1)/(obj.K_total-obj.stations_m(jStacja)))*obj.fix_rho(jStacja, lambda_current);
+                            mianownik = 1-((obj.K_total-obj.stations_m(jStacja)-1)/(obj.K_total-obj.stations_m(jStacja)))*obj.rhoInternal(jStacja, lambda_current);
                             fix_stacje(jStacja) = m0 + licznik/mianownik*obj.p_mi(jStacja, lambda_current);
                             
                         elseif obj.stations_types(jStacja) == 3
@@ -162,8 +229,34 @@ classdef Network_nClass<handle
             end
         end
         
+        function res = Kir_close(obj, iKlasa, jStacja)
+            %dla ka¿dej klasy
+            lambda_ir = obj.lambda(iKlasa, jStacja);
+            rho_i = 0;
+            for i = 1:obj.R
+                rho_i = rho_i + obj.rho(i, jStacja);
+            end
+            rho_ir = lambda_ir/obj.stations_Mi{iKlasa}(jStacja);
+            
+            if (obj.stations_types(jStacja) == 1 && obj.stations_m(jStacja) == 1) || obj.stations_types(jStacja) == 2 || obj.stations_types(jStacja) == 4
+                 licznik = rho_ir;
+                 mianownik = 1-((obj.K_total-1)/obj.K_total)*rho_i;
+                 res = licznik/mianownik;
+            elseif obj.stations_types(jStacja) == 1 && obj.stations_m(jStacja) > 1
+                m0 = obj.stations_m(jStacja)*rho_ir;
+
+                licznik = rho_ir;
+                mianownik = 1-((obj.K_total-obj.stations_m(jStacja)-1)/(obj.K_total-obj.stations_m(jStacja)))*rho_i;
+                res = m0 + licznik/mianownik*obj.p_mi(jStacja, obj.stations_lambda_vector);
+
+            elseif obj.stations_types(jStacja) == 3
+
+                res = lambda_ir./obj.stations_Mi{iKlasa}(jStacja);
+            end
+        end
+        
         function res = p_mi(obj, jStacja, lambda_current)
-            rho_i = obj.fix_rho(jStacja, lambda_current);
+            rho_i = obj.rhoInternal(jStacja, lambda_current);
             m_i = obj.stations_m(jStacja);
             
             first = power(m_i*rho_i, m_i)/(factorial(m_i)*(1-rho_i));
@@ -176,19 +269,19 @@ classdef Network_nClass<handle
             res = first/den_sum;
         end
         
-        function res = fix_rho(obj, jStacja, lambda_current)
-            res = 0;
-            for iKlasa = 1:obj.R
-                denominator_inversed = obj.inversedValueOfVector(obj.stations_Mi{iKlasa}.*obj.stations_m);
-                fix_rho_ir = lambda_current(iKlasa) .* obj.visitRatios{iKlasa} .* (denominator_inversed);
-                res = res + fix_rho_ir(jStacja);
-            end
-        end
-        
         function res = K_total(obj)
             res = 0;
             for iKlasa =1:obj.R
                 res =  res + obj.K_initial{iKlasa};
+            end
+        end
+        
+        function res = rhoInternal(obj, jStacja, lambda_current)
+            res = 0;
+            for iKlasa = 1:obj.R
+                denominator_inversed = obj.inversedValueOfVector(obj.stations_Mi{iKlasa}.*obj.stations_m);
+                rho_ir = lambda_current(iKlasa) .* obj.visitRatios{iKlasa} .* (denominator_inversed);
+                res = res + rho_ir(jStacja);
             end
         end
     end
@@ -196,20 +289,48 @@ classdef Network_nClass<handle
     %% Open network:
     methods ( Access = private )    
         %Wypadkowy wspó³czynnik przychodzenia zgloszen do danych stacji:
-        function lambda_final = calculateLambdas_open(obj)
+        function r = calculateLambdas_open(obj)
             obj.stations_lambda = {};
             for i = 1:obj.R
                 obj.stations_lambda{i} = obj.stations_visitRatio{i} * obj.lambda_in{i};
             end
-            lambda_final = obj.stations_lambda;
+            r = obj.stations_lambda;
         end
+        
+        function res = Kir_open(obj, iKlasa, jStacja)
+            %dla ka¿dej klasy
+            lambda_ir = obj.lambda(iKlasa, jStacja);
+            rho_i = 0;
+            for i = 1:obj.R
+                rho_i = rho_i + obj.rho(i, jStacja);
+            end
+            
+            if (obj.stations_types(jStacja) == 1 && obj.stations_m(jStacja) == 1) || obj.stations_types(jStacja) == 2 || obj.stations_types(jStacja) == 4
+                 licznik = lambda_ir/obj.stations_Mi{iKlasa}(jStacja);
+                 mianownik = 1-rho_i;
+                 res = licznik/mianownik;
+            elseif obj.stations_types(jStacja) == 1 && obj.stations_m(jStacja) > 1
+                m0 = rho_i*obj.stations_m(jStacja);
+
+                licznik = rho_i;
+                mianownik = 1-obj.rhoInternal(jStacja, obj.stations_lambda);
+                res = m0 + licznik/mianownik*obj.p_mi(jStacja, obj.stations_lambda);
+
+            elseif obj.stations_types(jStacja) == 3
+
+                res = lambda_ir./obj.stations_Mi{iKlasa}(jStacja);
+            end
+        end
+        
     end
     
     %% Auxilary function:    
-    methods (Access = private)
+    methods ( Access = private )
         function res = inversedValueOfVector(obj, vect)
            res =  diag((inv(diag(vect))));
         end
+        
     end
+    
 end
 

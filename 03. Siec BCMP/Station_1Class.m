@@ -1,4 +1,4 @@
-classdef Station_1Class
+classdef Station_1Class<handle
     %% Parametry stacji
     properties ( Access = public )
         Mi,
