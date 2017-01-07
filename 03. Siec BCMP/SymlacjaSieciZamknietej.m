@@ -16,7 +16,7 @@ opt = Opt_main(siec);
 % Konwencja: [numer stacji, wartoœæ od, wartoœæ do];
 stationForOptymalization = {};
 stationForOptymalization{1} = [1, 10, 50];
-%stationForOptymalization{2} = [3, 2, 20];
+%stationForOptymalization{1} = [3, 2, 20];
 
 %Okreslenie funkcji oceny. Funkcja jest minimalizowana.
 %Wspolczynnikow dla funkcji oceny rozwiazania:
