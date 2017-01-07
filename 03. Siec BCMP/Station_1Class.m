@@ -134,15 +134,7 @@ classdef Station_1Class<handle
             end
         end
         function r = m0(obj)
-            if(obj.Type == 1)
-                r = obj.rho;
-            elseif(obj.Type == 2)
-                r = 0;
-            elseif(obj.Type == 3)
-                r = obj.K;
-            elseif(obj.Type == 4)
-                r = 0;
-            end
+            r = obj.K-obj.Q;
         end
     end
     

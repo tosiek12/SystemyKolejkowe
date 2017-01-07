@@ -36,6 +36,5 @@ disp([siec.K(1, 1), 0.637;
 
 %% Oblicz parametry - siec zamknieta
 %3. Perf measures:
-%4. Marginal probabilities:
 %5. State probabilities:
 

@@ -1,5 +1,8 @@
 classdef Network_nClass<handle
     properties ( Access = public )
+        N,
+        R,
+        
         stations_lambda,
         stations_visitRatio,
         
@@ -20,8 +23,7 @@ classdef Network_nClass<handle
         stations_lambda_current,
     end
     properties ( Access = private )        
-        N,
-        R,
+        
         Type
     end
     
@@ -84,6 +86,7 @@ classdef Network_nClass<handle
            r = strcmp(obj.Type,'close');
         end
         
+        
         function v = visitRatios(obj)
             for i = 1:size(obj.P, 2)
 				if strcmp(obj.Type,'open') > 0 
@@ -106,14 +109,20 @@ classdef Network_nClass<handle
                 r(i) = obj.stations_lambda{i};
             end
         end
+        
     end
     
     %% Podstawowe parametry
     methods ( Access = public)
         function r = p(obj, iKlasa, jStacja, k)
-            stacja = obj.getStation(iKlasa, jStacja);
-            r = stacja.p(k);
+            if strcmp(obj.Type,'open') > 0 
+                stacja = obj.getStation(iKlasa, jStacja);
+                r = stacja.p(k);
+            else
+                r = obj.p_mi(iKlasa, jStacja);
+            end
         end
+        
         function r = K(obj, iKlasa, jStacja)
             if strcmp(obj.Type,'open') > 0 
                 r = obj.Kir_open(iKlasa, jStacja);
@@ -123,25 +132,32 @@ classdef Network_nClass<handle
         end
         
         function r = Q(obj, iKlasa, jStacja)
+            r =  obj.W(iKlasa, jStacja) * obj.lambda(iKlasa, jStacja);
+        end
+        
+        function r = m0(obj, iKlasa, jStacja)
             if strcmp(obj.Type,'open') > 0 
                 stacja = obj.getStation(iKlasa, jStacja);
-                r = stacja.Q();
+                r = stacja.m0();    %TODO: sprawdz, czy poprawne dla otwartych?
             else
-                %Dla sieci zamknietej mamy inne wzory:
-                
+                t = obj.stations_types(jStacja);
+                if((t == 1 && obj.stations_m(jStacja) == 1) || t == 2 || t == 4 )
+                    r = 0;
+                elseif(t == 3)
+                    r = obj.lambda(iKlasa, jStacja)/obj.stations_Mi{iKlasa}(jStacja);
+                else
+                    % t==1 && mj>1
+                    r = obj.rho(iKlasa, jStacja)*obj.stations_m(jStacja);
+                end
             end
-            
         end
-        function r = m0(obj, iKlasa, jStacja)
-            stacja = obj.getStation(iKlasa, jStacja);
-            r = stacja.m0();
+        
+        function r = m0_nowy(obj, iKlasa, jStacja)
+            r = obj.K(iKlasa, jStacja)-obj.Q(iKlasa, jStacja);
         end
         
         function r = rho(obj, iKlasa, jStacja)
             if strcmp(obj.Type,'open') > 0 
-                %stacja = obj.getStation(iKlasa, jStacja);
-                %r = stacja.rho;
-                
                 denominator_inversed = obj.inversedValueOfVector(obj.stations_Mi{iKlasa}.*obj.stations_m);
                 rho_ir = obj.stations_lambda{iKlasa} .* (denominator_inversed);                
                 r = rho_ir(jStacja);
@@ -154,28 +170,24 @@ classdef Network_nClass<handle
         
         function r = lambda(obj, iKlasa, jStacja)
             if strcmp(obj.Type,'open') > 0 
-                r = obj.stations_lambda{iKlasa}(jStacja);
+                r = obj.stations_lambda{iKlasa}(jStacja); %already multiplied by visit ratio
             else
                 r = obj.stations_lambda{iKlasa}*obj.stations_visitRatio{iKlasa}(jStacja);
             end
         end
         
-    end
-    
-    % Regula littla:
-    methods ( Access = public )
         function r = W(obj, iKlasa, iStacja)
-           r = obj.Q(iKlasa, iStacja)/obj.stations_lambda(iKlasa, iStacja); 
+           r = obj.T(iKlasa, iStacja)-1/obj.stations_Mi{iKlasa}(iStacja); 
         end
+        
         function r = T(obj, iKlasa, iStacja)
-            r = obj.K(iKlasa, iStacja)/obj.stations_lambda(iKlasa, iStacja);
+            r = obj.K(iKlasa, iStacja)/obj.lambda(iKlasa, iStacja);
         end
     end
-    
     %% Closed network:
     methods ( Access = private )      
         
-        %Step2:Fixed Point Iteration:
+        %Fixed Point Iteration:
         function lambda_final = calculateLambdas_close(obj)
             %Init lambda:
             lambda_current = ones(obj.R, 1).*10^-5;

@@ -7,6 +7,17 @@ run('conf_SiecZamknieta');
 %% Oblicz parametry:
 siec.calculateLambdas();
 
+%% Oblicz ocenê rozwiazania:
+opt = Opt_main(siec);
+C1 = {};
+C1{1} = [12, 12, 12, 0];
+C1{2} = [12, 12, 12, 0];
+C1{3} = [12, 12, 12, 12];
+
+C2 = [12, 12, 12];
+res = opt.utilityFunction('funkcja1', C1, C2)
+res = opt.utilityFunction('funkcja2', C1, C2)
+
 %% Pokaz wyniki
 
 disp('Wyniki - porownanie do przykladu z 395 (8.6):');
@@ -30,7 +41,7 @@ rho2 = [siec.rho(2, 1);
     siec.rho(2, 2);
     siec.rho(2, 3)];
 rho_result = [.833;.443;.354];
-disp([rho1 + rho2,rho_result]);
+disp([rho1 + rho2, rho_result]);
 
 disp('K:')
 disp('Klasa 1:')
@@ -41,3 +52,13 @@ disp('Klasa 2:')
 disp([siec.K(2, 1), 2.5;
     siec.K(2, 2), .5;
     siec.K(2, 3), .362]);
+
+disp('Q:')
+disp('Klasa 1:')
+disp([siec.Q(1, 1), 2.5;
+    siec.Q(1, 2), .342;
+    siec.Q(1, 3), .186]);
+disp('Klasa 2:')
+disp([siec.Q(2, 1), 2.5;
+    siec.Q(2, 2), .5;
+    siec.Q(2, 3), .362]);
