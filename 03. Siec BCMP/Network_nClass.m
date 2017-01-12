@@ -1,4 +1,5 @@
 classdef Network_nClass<handle
+    %% Fields:
     properties ( Access = public )
         N,
         R,
@@ -85,8 +86,8 @@ classdef Network_nClass<handle
         function r = isClosed(obj)
            r = strcmp(obj.Type,'close');
         end
-        
-        
+    end
+    methods ( Access = private )
         function v = visitRatios(obj)
             for i = 1:size(obj.P, 2)
 				if strcmp(obj.Type,'open') > 0 
@@ -108,6 +109,9 @@ classdef Network_nClass<handle
             for i = 1:obj.R
                 r(i) = obj.stations_lambda{i};
             end
+        end
+        function res = inversedValueOfVector(obj, vect)
+           res =  diag((inv(diag(vect))));
         end
         
     end
@@ -184,6 +188,7 @@ classdef Network_nClass<handle
             r = obj.K(iKlasa, iStacja)/obj.lambda(iKlasa, iStacja);
         end
     end
+    
     %% Closed network:
     methods ( Access = private )      
         
@@ -335,14 +340,5 @@ classdef Network_nClass<handle
         end
         
     end
-    
-    %% Auxilary function:    
-    methods ( Access = private )
-        function res = inversedValueOfVector(obj, vect)
-           res =  diag((inv(diag(vect))));
-        end
-        
-    end
-    
 end
 
