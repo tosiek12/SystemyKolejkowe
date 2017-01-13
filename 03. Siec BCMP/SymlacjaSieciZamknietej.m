@@ -2,7 +2,7 @@
 % Projekt wykonany na zajecia. 
 %% Konfiguracja:
 clc; close; clear;
-cd('C:\Users\Antonio-laptop\Documents\Studia\SystemyKolejkowe\03. Siec BCMP\')
+% cd('C:\Users\Antonio-laptop\Documents\Studia\SystemyKolejkowe\03. Siec BCMP\')
 run('conf_SiecZamknieta');
 %% Oblicz parametry:
 siec.calculateLambdas();
