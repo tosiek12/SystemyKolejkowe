@@ -76,7 +76,9 @@ classdef CSO<handle
         
         function swarm_chase(obj)
             new_population = obj.population
-            for i=1:size(obj.population, 2);
+            for i=1:size(obj.population, 2)
+                
+            end
         end
         
         function disperse(obj)
