@@ -46,6 +46,7 @@ classdef Opt_main<handle
         function r = FindBest(obj, maxIterations)
             obj.n_max = maxIterations;
             n = 0;
+            disp(strcat('N = ', num2str(n)));
             prev = obj.cso.current_pg_value();
             now = obj.cso.step();
             while obj.stopCondition(n, prev, now) == false
