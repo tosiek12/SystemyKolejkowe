@@ -155,20 +155,26 @@ classdef Network_nClass<handle
         end
         
         function r = m0(obj, iKlasa, jStacja)
-            if strcmp(obj.Type,'open') > 0 
-                stacja = obj.getStation(iKlasa, jStacja);
-                r = stacja.m0();    %TODO: sprawdz, czy poprawne dla otwartych?
-            else
-                t = obj.stations_types(jStacja);
-                if((t == 1 && obj.stations_m(jStacja) == 1) || t == 2 || t == 4 )
-                    r = 0;
-                elseif(t == 3)
-                    r = obj.lambda(iKlasa, jStacja)/obj.stations_Mi{iKlasa}(jStacja);
-                else
-                    % t==1 && mj>1
-                    r = obj.rho(iKlasa, jStacja)*obj.stations_m(jStacja);
+            if strcmp(num2str(jStacja), '*')>0 
+                for i = 1 :obj.N
+                   r(i) = obj.m0(iKlasa, i); 
                 end
-            end
+            else
+                if strcmp(obj.Type,'open') > 0 
+                    stacja = obj.getStation(iKlasa, jStacja);
+                    r = stacja.m0();    %TODO: sprawdz, czy poprawne dla otwartych?
+                else
+                    t = obj.stations_types(jStacja);
+                    if((t == 1 && obj.stations_m(jStacja) == 1) || t == 2 || t == 4 )
+                        r = 0;
+                    elseif(t == 3)
+                        r = obj.lambda(iKlasa, jStacja)/obj.stations_Mi{iKlasa}(jStacja);
+                    else
+                        % t==1 && mj>1
+                        r = obj.rho(iKlasa, jStacja)*obj.stations_m(jStacja);
+                    end
+                end
+            end            
         end
         
         function r = m0_nowy(obj, iKlasa, jStacja)

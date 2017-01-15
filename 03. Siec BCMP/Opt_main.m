@@ -70,7 +70,7 @@ classdef Opt_main<handle
 %               r = false;
 %            end
 
-           if n > n_max
+           if n > obj.n_max
               r = true;
            else
               r = false;

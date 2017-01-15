@@ -28,13 +28,13 @@ stationForOptymalization{1} = [1, 10, 50];
 %Koszt kolejki:
 C1 = {};
 %Konwencja: [wsp. ceny dla stacji 1, wsp. ceny dla stacji 2, ..]
-C1{1} = [1, 12, 12, 1, 1, 1]; %1 klasa
-C1{2} = [2, 12, 12, 1, 1, 1]; %2 klasa
-C1{3} = [1, 12, 12, 1, 1, 1]; %3 klasa
+C1{1} = [1, 12, 12, 1, 1, 0]; %1 klasa
+C1{2} = [2, 12, 12, 1, 1, 0]; %2 klasa
+C1{3} = [1, 12, 12, 1, 1, 0]; %3 klasa
 
 %Koszt utrzymania stacji:
 %Konwencja: [wsp. ceny dla stacji 1, wsp. ceny dla stacji 2, ..]
-C2 = [1, 4, 2, 1, 1, 1];
+C2 = [1, 4, 2, 1, 1, 0];
 
 %Ustaw parametry:
 opt.SetOptymalization(stationForOptymalization, 'funkcja1', C1, C2);
@@ -74,4 +74,11 @@ for i = 1: siec.R
     disp(['Klasa ', num2str(i), ':'])
     disp([siec.Q(i, '*');
         siec_opt.Q(i, '*')]);
+end
+
+disp('m0:')
+for i = 1: siec.R
+    disp(['Klasa ', num2str(i), ':'])
+    disp([siec.m0(i, '*');
+        siec_opt.m0(i, '*')]);
 end
