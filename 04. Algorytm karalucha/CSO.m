@@ -17,7 +17,7 @@ classdef CSO<handle
         function obj = CSO(network, functionT, C1, C2, initial_stations_m, population_size, visual)
             obj.pg = initial_stations_m;
             obj.population = randi(1000, size(initial_stations_m, 1), population_size);
-            disp(obj.population)
+%             disp(obj.population)
             obj.population_values = -inf*ones(1, size(obj.population, 2));
             obj.visual = visual;
             obj.network = network;
@@ -47,8 +47,8 @@ classdef CSO<handle
            
            obj.step_no = obj.step_no + 1;
            obj.calculate_utility_values();
-           disp(obj.population)
-           disp(obj.find_pg())
+%            disp(obj.population)
+%            disp(obj.find_pg())
            best = obj.current_pg_value();
         end
         
