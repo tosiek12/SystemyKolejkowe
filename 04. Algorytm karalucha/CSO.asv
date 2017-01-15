@@ -29,22 +29,21 @@ classdef CSO<handle
             else
                 error('Utility function not defined.');
             end
-            obj.calculate_utility_values();
             display 'Initialized CSO!'
         end
         
 %         function initialize_population(obj, 
 
         function best = step(obj)
+           obj.calculate_utility_values();
            % perform swarm-chasing
            obj.swarm_chase();
            % perform dispersing
-           obj.disperse();           
+%            obj.disperse();           
            % perform ruthless behaviour
            obj.ruthless_behaviour();
            
            obj.step_no = obj.step_no + 1;
-           obj.calculate_utility_values();
            best = obj.current_pg_value();
         end
         
@@ -111,20 +110,13 @@ classdef CSO<handle
 %             obj.population_values
         end
         
-        function disperse(obj)
-            if mod(obj.step_no, 5) ~= 0
-                return
-            end
+        function disperse(obj)            
             for i=1:size(obj.population, 2)
                 obj.population(:,i) = round(obj.population(:,i) + randi(2, size(obj.population, 1), 1) - 1);
             end
         end
         
         function ruthless_behaviour(obj)
-            if mod(obj.step_no, 10) ~= 0
-                return
-            end
-            disp('RUTHLESS COCKROACH');
             ci = randi(size(obj.population, 2));
             obj.population(:, ci) = obj.find_pg();
         end
@@ -136,10 +128,7 @@ classdef CSO<handle
     methods ( Access = public )
 
         function r = utilityFunction1(obj, stations_m)
-            if min(stations_m) < 0
-                r = inf
-                return
-            end
+            if 
             obj.network.stations_m = stations_m;
             obj.network.calculateLambdas();
             

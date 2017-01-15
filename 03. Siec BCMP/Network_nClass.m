@@ -1,3 +1,4 @@
+
 classdef Network_nClass<handle
     %% Fields:
     properties ( Access = public )
@@ -275,7 +276,6 @@ classdef Network_nClass<handle
         function res = p_mi(obj, jStacja, lambda_current)
             rho_i = obj.rhoInternal(jStacja, lambda_current);
             m_i = obj.stations_m(jStacja);
-            
             first = power(m_i*rho_i, m_i)/(factorial(m_i)*(1-rho_i));
             
             den_sum = 0;

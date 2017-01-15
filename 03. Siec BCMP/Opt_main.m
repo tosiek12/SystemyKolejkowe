@@ -35,7 +35,7 @@ classdef Opt_main<handle
            obj.stationForOptymalization = Station;
            
            addpath('..\04. Algorytm karalucha\');
-           obj.cso = CSO(obj.network, functionT, par1, par2, obj.network.stations_m, 20, 0.1);
+           obj.cso = CSO(obj.network, functionT, par1, par2, obj.network.stations_m, 20, 120);
         end
         
     end
@@ -47,11 +47,13 @@ classdef Opt_main<handle
         
         function r = FindBest(obj)
             n = 0;
-            prev = obj.cso.current_pg();
+            prev = obj.cso.current_pg_value();
             now = obj.cso.step();
             
             while obj.stopCondition(n, prev, now) == false
+                prev = now;
                 now = obj.cso.step();
+                disp(strcat('N = ', num2str(n)));
                 n = n + 1;
             end
             
@@ -98,8 +100,17 @@ classdef Opt_main<handle
         
         
         function r = stopCondition(obj, n, prev, now)
-           delta = 10^-2;
-           if n > 3 || abs(prev-now) < delta 
+           disp('[prev,now]')
+           disp([prev,now])   
+           
+%            delta = 10^-2;
+%            if n > 3 || abs(prev-now) < delta 
+%               r = true;
+%            else
+%               r = false;
+%            end
+
+           if n > 100
               r = true;
            else
               r = false;
