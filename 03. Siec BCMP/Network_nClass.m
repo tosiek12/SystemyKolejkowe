@@ -212,7 +212,11 @@ classdef Network_nClass<handle
         end
         
         function r = T(obj, iKlasa, iStacja)
-            r = obj.K(iKlasa, iStacja)/obj.lambda(iKlasa, iStacja);
+            if obj.lambda(iKlasa, iStacja) == 0 
+                r = 0;
+            else
+                r = obj.K(iKlasa, iStacja)/obj.lambda(iKlasa, iStacja);
+            end
         end
         
         function r = m(obj, jStacja)

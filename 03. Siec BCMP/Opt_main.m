@@ -14,7 +14,7 @@ classdef Opt_main<handle
         par1
         par2
         
-        
+        n_max
     end
     
     %% Konstruktor
@@ -40,16 +40,14 @@ classdef Opt_main<handle
         
     end
     
-
-    
     %% Procedura optymalizacji
     methods ( Access = public )
         
-        function r = FindBest(obj)
+        function r = FindBest(obj, maxIterations)
+            obj.n_max = maxIterations;
             n = 0;
             prev = obj.cso.current_pg_value();
             now = obj.cso.step();
-            
             while obj.stopCondition(n, prev, now) == false
                 prev = now;
                 now = obj.cso.step();
@@ -58,50 +56,12 @@ classdef Opt_main<handle
             end
             
             r = obj.cso.get_best_network();
-%             n = 0;
-%             prev = Inf;
-%             now = obj.utilityFunction();
-%             disp('[n,now]');
-%             disp([n, now]);
-%             
-%             while obj.stopCondition(n, prev, now) == false
-%                 %do karaluch magic:
-%                 
-%                 %na podstawie stationForOptymalization
-%                 new_m = obj.network.stations_m;
-%                 % wybierz, ktore stacje maja byc zmieniane:
-%                 for i = 1:size(obj.stationForOptymalization(:), 1)
-%                     tmp = obj.stationForOptymalization{i};
-%                     %tmp = [numer stacji, wartoœæ od, wartoœæ do];
-%                     new_m(tmp(1))= n+1; %hardcode -> do zmiany
-%                 end
-%                 
-%                 %ustaw nowe wartosci dla sieci:
-%                 %na podstawie alg. karalucah
-%                 
-%                 disp('new_m');
-%                 disp(new_m');
-%                 obj.network.stations_m = new_m;
-%                 obj.network.calculateLambdas();
-%                 
-%                 %odswiez funkcje celu:
-%                 
-%                 
-%                 prev = now;
-%                 now = obj.utilityFunction();
-%                 n = n+1;
-%                 disp('[n,now]');
-%                 disp([n, now]);
-%             end
-%             
-%             %return final web:
-%             r = obj.network;
         end
         
         
         function r = stopCondition(obj, n, prev, now)
-           disp('[prev,now]')
-           disp([prev,now])   
+           disp('[prev, now, delta(now-prev)]')
+           disp([prev, now, (now-prev)])
            
 %            delta = 10^-2;
 %            if n > 3 || abs(prev-now) < delta 
@@ -110,7 +70,7 @@ classdef Opt_main<handle
 %               r = false;
 %            end
 
-           if n > 10
+           if n > n_max
               r = true;
            else
               r = false;

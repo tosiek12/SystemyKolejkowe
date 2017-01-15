@@ -4,13 +4,16 @@
 clc; close; clear;
 % cd('C:\Users\Antonio-laptop\Documents\Studia\SystemyKolejkowe\03. Siec BCMP\')
 run('conf_SiecZamknieta_przyklad');
+siec_opt = siec;
+clear ('siec')
+run('conf_SiecZamknieta_przyklad');
 %% Oblicz parametry:
 siec.calculateLambdas();
 
 %% Oblicz ocenê rozwiazania:
 %Inicjalizacja klasy optymalizowanej obiektem sieci.
 %Siec posiada obliczone wartosci startowe.
-opt = Opt_main(siec); 
+opt = Opt_main(siec_opt); 
 
 %Okreslenie, ktore systemy maj¹ byc zmieniane:
 % Konwencja: [numer stacji, wartoœæ od, wartoœæ do];
@@ -33,17 +36,11 @@ C1{3} = [1, 12, 12, 1, 1, 1]; %3 klasa
 %Konwencja: [wsp. ceny dla stacji 1, wsp. ceny dla stacji 2, ..]
 C2 = [1, 4, 2, 1, 1, 1];
 
-%Funkcja 2 - aby czas obslugi w jednej ze stacji mia³ okreslon¹ wartoœæ:
-%opt.SetOptymalization(stationForOptymalization, 'funkcja2', C1, C2);
-%TODO:  zdefiniowaæ drug¹ funkcê oceny.
-
 %Ustaw parametry:
 opt.SetOptymalization(stationForOptymalization, 'funkcja1', C1, C2);
-%res = opt.utilityFunction(); %testowe obliczenie funkcji oceny.
 
 %Wykonaj optymalizacje
-siec_opt = siec;
-siec_opt = opt.FindBest(); %do magic!
+siec_opt = opt.FindBest(1);
 
 %% Pokaz wyniki
 disp('Wyniki - porownanie po optymalizacji');
