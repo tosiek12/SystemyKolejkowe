@@ -35,7 +35,7 @@ classdef Opt_main<handle
            obj.stationForOptymalization = Station;
            
            addpath('..\04. Algorytm karalucha\');
-           obj.cso = CSO(obj.network, functionT, par1, par2, obj.network.stations_m, 20, 120);
+           obj.cso = CSO(obj.network, functionT, par1, par2, obj.network.stations_m, 50, 50);
         end
         
     end

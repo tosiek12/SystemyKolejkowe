@@ -10,12 +10,14 @@ classdef CSO<handle
         par1;
         par2;
         step_no = 0;
+        l = 1;
     end
     
     methods (Access = public)
         function obj = CSO(network, functionT, C1, C2, initial_stations_m, population_size, visual)
             obj.pg = initial_stations_m;
-            obj.population = randi(100, size(initial_stations_m, 1), population_size);
+            obj.population = randi(1000, size(initial_stations_m, 1), population_size);
+            disp(obj.population)
             obj.population_values = -inf*ones(1, size(obj.population, 2));
             obj.visual = visual;
             obj.network = network;
@@ -45,6 +47,8 @@ classdef CSO<handle
            
            obj.step_no = obj.step_no + 1;
            obj.calculate_utility_values();
+           disp(obj.population)
+           disp(obj.find_pg())
            best = obj.current_pg_value();
         end
         
@@ -68,6 +72,7 @@ classdef CSO<handle
                     swarm(i) = obj.population_values(i);
                 end
             end
+%             disp(swarm)
             [~, indices] = sort(swarm, 'ascend');
             pi_index = indices(1);
         end
@@ -77,6 +82,7 @@ classdef CSO<handle
             for i = 1:size(obj.population, 2)
                 swarm(i) = obj.population_values(i);
             end
+%             disp(swarm)
             [~, indices] = sort(swarm, 'ascend');
             pg_index = indices(1);
         end
@@ -92,9 +98,9 @@ classdef CSO<handle
 %               strcat( 'Moving cockroach no: ', num2str(i), ' -> ')
                 pi_index = obj.find_pi_index(i);
                 if pi_index == i
-                    new_cockroach = round(obj.population(:,i) + rand() * (obj.population(:,pg_index) - obj.population(:,i)));
+                    new_cockroach = round(obj.population(:,i) + obj.l * rand() * (obj.population(:,pg_index) - obj.population(:,i)));
                 else 
-                    new_cockroach = round(obj.population(:,i) + rand() * (obj.population(:,pg_index) - obj.population(:,i)));
+                    new_cockroach = round(obj.population(:,i) + obj.l * rand() * (obj.population(:,pg_index) - obj.population(:,i)));
                 end
                 new_population(:,i) = new_cockroach;
             end
@@ -137,7 +143,7 @@ classdef CSO<handle
 
         function r = utilityFunction1(obj, stations_m)
             if min(stations_m) < 0
-                r = inf
+                r = abs(min(stations_m) * 10000);
                 return
             end
             obj.network.stations_m = stations_m;
