@@ -10,7 +10,7 @@ classdef CSO<handle
         par1;
         par2;
         step_no = 0;
-        l = 1;
+        l = .5;
     end
     
     methods (Access = public)
@@ -102,6 +102,7 @@ classdef CSO<handle
                 else 
                     new_cockroach = round(obj.population(:,i) + obj.l * rand() * (obj.population(:,pg_index) - obj.population(:,i)));
                 end
+                new_cockroach(new_cockroach < 1) = 1;
                 new_population(:,i) = new_cockroach;
             end
 %             display [old, new]
@@ -122,12 +123,14 @@ classdef CSO<handle
                 return
             end
             for i=1:size(obj.population, 2)
-                obj.population(:,i) = round(obj.population(:,i) + randi(2, size(obj.population, 1), 1) - 1);
+                dispersed = round(obj.population(:,i) + randi(10, size(obj.population, 1), 1) - 5);
+                dispersed(dispersed < 1) = 1;
+                obj.population(:,i) = dispersed;
             end
         end
         
         function ruthless_behaviour(obj)
-            if mod(obj.step_no, 10) ~= 0
+            if mod(obj.step_no, 10) ~= 9
                 return
             end
             disp('RUTHLESS COCKROACH');
