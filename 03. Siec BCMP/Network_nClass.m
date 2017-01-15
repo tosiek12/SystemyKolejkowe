@@ -129,15 +129,29 @@ classdef Network_nClass<handle
         end
         
         function r = K(obj, iKlasa, jStacja)
+            
             if strcmp(obj.Type,'open') > 0 
-                r = obj.Kir_open(iKlasa, jStacja);
+                fc = @obj.Kir_open;
             else
-                r = obj.Kir_close(iKlasa, jStacja);
+                fc = @obj.Kir_close;
+            end
+            if strcmp(num2str(jStacja), '*')>0 
+                for i = 1 : obj.N
+                    r(i) = fc(iKlasa, i);
+                end
+            else
+                r = fc(iKlasa, jStacja);
             end
         end
         
         function r = Q(obj, iKlasa, jStacja)
-            r =  obj.W(iKlasa, jStacja) * obj.lambda(iKlasa, jStacja);
+            if strcmp(num2str(jStacja), '*')>0 
+                for i = 1 : obj.N
+                    r(i) = obj.W(iKlasa, i) * obj.lambda(iKlasa, i);
+                end
+            else
+                r = obj.W(iKlasa, jStacja) * obj.lambda(iKlasa, jStacja);
+            end
         end
         
         function r = m0(obj, iKlasa, jStacja)
@@ -165,19 +179,31 @@ classdef Network_nClass<handle
             if strcmp(obj.Type,'open') > 0 
                 denominator_inversed = obj.inversedValueOfVector(obj.stations_Mi{iKlasa}.*obj.stations_m);
                 rho_ir = obj.stations_lambda{iKlasa} .* (denominator_inversed);                
-                r = rho_ir(jStacja);
             else
                 denominator_inversed = obj.inversedValueOfVector(obj.stations_Mi{iKlasa}.*obj.stations_m);
                 rho_ir = obj.stations_lambda{iKlasa} .* obj.visitRatios{iKlasa} .* (denominator_inversed);                
+            end
+
+            if strcmp(num2str(jStacja), '*')>0 
+                r = transpose(rho_ir);
+            else
                 r = rho_ir(jStacja);
             end
         end
         
         function r = lambda(obj, iKlasa, jStacja)
-            if strcmp(obj.Type,'open') > 0 
-                r = obj.stations_lambda{iKlasa}(jStacja); %already multiplied by visit ratio
+            if strcmp(num2str(jStacja), '*')>0 
+                if strcmp(obj.Type,'open') > 0 
+                    r = transpose(obj.stations_lambda{iKlasa}); %already multiplied by visit ratio
+                else
+                    r = transpose(obj.stations_lambda{iKlasa}*obj.stations_visitRatio{iKlasa});
+                end
             else
-                r = obj.stations_lambda{iKlasa}*obj.stations_visitRatio{iKlasa}(jStacja);
+                if strcmp(obj.Type,'open') > 0 
+                    r = obj.stations_lambda{iKlasa}(jStacja); %already multiplied by visit ratio
+                else
+                    r = obj.stations_lambda{iKlasa}*obj.stations_visitRatio{iKlasa}(jStacja);
+                end
             end
         end
         
@@ -188,6 +214,16 @@ classdef Network_nClass<handle
         function r = T(obj, iKlasa, iStacja)
             r = obj.K(iKlasa, iStacja)/obj.lambda(iKlasa, iStacja);
         end
+        
+        function r = m(obj, jStacja)
+            if strcmp(num2str(jStacja), '*')>0 
+                r = transpose(obj.stations_m);
+            else
+                r = obj.stations_m(jStacja);
+            end
+            
+        end
+        
     end
     
     %% Closed network:

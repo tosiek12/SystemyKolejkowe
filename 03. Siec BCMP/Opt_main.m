@@ -110,7 +110,7 @@ classdef Opt_main<handle
 %               r = false;
 %            end
 
-           if n > 100
+           if n > 10
               r = true;
            else
               r = false;
