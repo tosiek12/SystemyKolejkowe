@@ -36,11 +36,6 @@ siec.P{3} = [0, 0, 0, 1, 0, 0;
              0, 0, 0, 0, 0, 1;
              1, 0, 0, 0, 0, 0];
 
-%% Wspolczynnik przychodzenia zgloszen danej klasy
-siec.lambda_in{1} = 10;
-siec.lambda_in{2} = 20;
-siec.lambda_in{3} = 25;
-
 %% Ilosc zgloszen danej klasy w systemie
 siec.K_initial{1} = 500;
 siec.K_initial{2} = 800;

@@ -47,8 +47,8 @@ classdef Opt_main<handle
             obj.n_max = maxIterations;
             n = 0;
             disp(strcat('N = ', num2str(n)));
-            prev = obj.cso.current_pg_value();
-            now = obj.cso.step();
+            prev = obj.cso.current_network_value(); %current_pg_value();
+            now = prev; %obj.cso.step();
             while obj.stopCondition(n, prev, now) == false
                 prev = now;
                 now = obj.cso.step();

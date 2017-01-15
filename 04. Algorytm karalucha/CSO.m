@@ -56,6 +56,10 @@ classdef CSO<handle
             pg = obj.utility_function(obj.find_pg());
         end
         
+        function pg = current_network_value(obj)
+            pg = obj.utility_function(obj.network.stations_m);
+        end
+        
         function best_network = get_best_network(obj)
             obj.network.stations_m = obj.find_pg();
             obj.network.calculateLambdas();
@@ -161,10 +165,11 @@ classdef CSO<handle
                         par_sum = par_sum + C1{iKlasa}(jStacja) * obj.network.Q(iKlasa,jStacja);
                     end
                 end
-            end
-            for jStacja =1:obj.network.N
-                if C2(jStacja) ~= 0 
-                    par_sum = par_sum + C2(jStacja) * obj.network.m0(iKlasa,jStacja);
+                
+                for jStacja =1:obj.network.N
+                    if C2(jStacja) ~= 0 
+                        par_sum = par_sum + C2(jStacja) * (stations_m(jStacja)-obj.network.m0(iKlasa,jStacja));
+                    end
                 end
             end
             r = par_sum;
