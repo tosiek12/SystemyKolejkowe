@@ -17,7 +17,6 @@ siec.P{1} = [0, .5, .5, 0;
             0, 0, 0, 1;
             0, 0, 0, 1;
             1, 0 , 0, 0];
-
+        
 %% Ilosc zgloszen danej klasy w systemie
 siec.K_initial{1} = 3;
-

@@ -149,12 +149,18 @@ classdef CSO<handle
     methods ( Access = public )
 
         function r = utilityFunction1(obj, stations_m)
-            if min(stations_m) < 0
+            if min(stations_m) < 0 
                 r = abs(min(stations_m) * 10000);
                 return
             end
+            
             obj.network.stations_m = stations_m;
             obj.network.calculateLambdas();
+            
+            if obj.network.isFiniteQueue() == false
+                r = abs(min(stations_m) * 10000);
+                return
+            end
             
             C1 = obj.par1;
             C2 = obj.par2;

@@ -17,6 +17,7 @@ disp('Lambda ca³osc:')
 disp([siec.stations_lambda, 1.193]);    %wynik doklady 1.217
 
 disp('Lambda per stacja:')
+%siec.lambda(1, '*')
 disp([siec.lambda(1, 1), 1.193;
     siec.lambda(1, 2), 0.596;
     siec.lambda(1, 3), 0.596;

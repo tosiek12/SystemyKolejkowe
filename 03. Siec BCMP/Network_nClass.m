@@ -90,7 +90,7 @@ classdef Network_nClass<handle
     end
     methods ( Access = private )
         function v = visitRatios(obj)
-            for i = 1:size(obj.P, 2)
+            for i = 1:obj.R
 				if strcmp(obj.Type,'open') > 0 
 					A = eye(obj.N) - obj.P{i}';
 					obj.stations_visitRatio{i} = lsqlin(A, obj.P_in{i});
@@ -166,11 +166,9 @@ classdef Network_nClass<handle
                 else
                     t = obj.stations_types(jStacja);
                     if((t == 1 && obj.stations_m(jStacja) == 1) || t == 2 || t == 4 )
-                        r = 0;
-                    elseif(t == 3)
-                        r = obj.lambda(iKlasa, jStacja)/obj.stations_Mi{iKlasa}(jStacja);
+                        r = 1;
                     else
-                        % t==1 && mj>1
+                        % (t==1 && mj>1)||t == 3
                         r = obj.rho(iKlasa, jStacja)*obj.stations_m(jStacja);
                     end
                 end
@@ -178,7 +176,13 @@ classdef Network_nClass<handle
         end
         
         function r = m0_nowy(obj, iKlasa, jStacja)
-            r = obj.K(iKlasa, jStacja)-obj.Q(iKlasa, jStacja);
+            if strcmp(num2str(jStacja), '*')>0 
+                for i = 1 :obj.N
+                   r(i) = obj.m0_nowy(iKlasa, i); 
+                end
+            else
+                r = obj.K(iKlasa, jStacja)-obj.Q(iKlasa, jStacja);
+            end
         end
         
         function r = rho(obj, iKlasa, jStacja)
@@ -187,7 +191,9 @@ classdef Network_nClass<handle
                 rho_ir = obj.stations_lambda{iKlasa} .* (denominator_inversed);                
             else
                 denominator_inversed = obj.inversedValueOfVector(obj.stations_Mi{iKlasa}.*obj.stations_m);
-                rho_ir = obj.stations_lambda{iKlasa} .* obj.visitRatios{iKlasa} .* (denominator_inversed);                
+                rho_ir = obj.stations_lambda{iKlasa} .* obj.visitRatios{iKlasa} .* (denominator_inversed);    
+                %denom = obj.stations_Mi{iKlasa}(jStacja).*obj.stations_m(jStacja);
+                %rho_ir =  obj.lambda(iKlasa,jStacja) / denom;
             end
 
             if strcmp(num2str(jStacja), '*')>0 
@@ -214,7 +220,7 @@ classdef Network_nClass<handle
         end
         
         function r = W(obj, iKlasa, iStacja)
-           r = obj.T(iKlasa, iStacja)-1/obj.stations_Mi{iKlasa}(iStacja); 
+           r = max(0,obj.T(iKlasa, iStacja)-1/obj.stations_Mi{iKlasa}(iStacja));
         end
         
         function r = T(obj, iKlasa, iStacja)
@@ -234,6 +240,18 @@ classdef Network_nClass<handle
             
         end
         
+        function r = isFiniteQueue(obj)
+            r = true;
+            for i = 1: obj.R
+                row = obj.rho(i, '*'); 
+                mRho = max(row(:));
+                if mRho>1 
+                   r = false; 
+                   break;
+                end
+            end
+            
+        end
     end
     
     %% Closed network:
@@ -246,15 +264,23 @@ classdef Network_nClass<handle
             %Do fix magic
             i = 1;
             delta = 1;
-            while i<100 && delta>10^-5
+            while i<10 && delta>10^-5
+                
                 lambda_prev = lambda_current;
-                res = obj.fix(lambda_current);
+                fix_ir = obj.fix(lambda_current);
+                
                 for iKlasa = 1:obj.R
-                    lambda_current(iKlasa) = obj.K_initial{iKlasa}/sum(res{iKlasa});
+                    suma = sum(fix_ir{iKlasa});
+                    lambda_current(iKlasa) = obj.K_initial{iKlasa}/suma;
                 end
                 delta = sqrt(sum((lambda_prev - lambda_current).*(lambda_prev - lambda_current)));
                 
-                %disp([i, lambda_current, delta]);
+                if true == false 
+                    disp('--');
+                    disp([i, delta]);
+                    disp([lambda_prev, lambda_current]);
+                end
+                
                 
                 i = i + 1;
             end
@@ -300,20 +326,21 @@ classdef Network_nClass<handle
             for i = 1:obj.R
                 rho_i = rho_i + obj.rho(i, jStacja);
             end
-            rho_ir = lambda_ir/obj.stations_Mi{iKlasa}(jStacja);
+            rho_ir = lambda_ir/(obj.stations_Mi{iKlasa}(jStacja)*obj.stations_m(jStacja));
             
-            if (obj.stations_types(jStacja) == 1 && obj.stations_m(jStacja) == 1) || obj.stations_types(jStacja) == 2 || obj.stations_types(jStacja) == 4
+            t = obj.stations_types(jStacja);
+            if (t == 1 && obj.stations_m(jStacja) == 1) || t == 2 || t == 4
                  licznik = rho_ir;
                  mianownik = 1-((obj.K_total-1)/obj.K_total)*rho_i;
                  res = licznik/mianownik;
-            elseif obj.stations_types(jStacja) == 1 && obj.stations_m(jStacja) > 1
+            elseif t == 1 && obj.stations_m(jStacja) > 1
                 m0 = obj.stations_m(jStacja)*rho_ir;
 
                 licznik = rho_ir;
                 mianownik = 1-((obj.K_total-obj.stations_m(jStacja)-1)/(obj.K_total-obj.stations_m(jStacja)))*rho_i;
                 res = m0 + licznik/mianownik*obj.p_mi(jStacja, obj.stations_lambda_vector);
 
-            elseif obj.stations_types(jStacja) == 3
+            elseif t == 3
 
                 res = lambda_ir./obj.stations_Mi{iKlasa}(jStacja);
             end
@@ -325,10 +352,12 @@ classdef Network_nClass<handle
             first = power(m_i*rho_i, m_i)/(factorial(m_i)*(1-rho_i));
             
             den_sum = 0;
-            for k = 0:m_i-1
-               den_sum = den_sum + power(m_i*rho_i, k)/factorial(k) + power(m_i*rho_i, m_i)/factorial(m_i)*(1/(1-rho_i));
+            for k = 0:(m_i-1)
+                den_sum = den_sum + power(m_i*rho_i, k)/factorial(k); %+ power(m_i*rho_i, m_i)/factorial(m_i)*(1/(1-rho_i));
+                %den_sum = den_sum + power(m_i*rho_i, k)/factorial(k)+ power(m_i*rho_i, m_i)/factorial(m_i)*(1/(1-rho_i));
             end
-            
+            den_sum = den_sum + (power(m_i*rho_i, m_i)/factorial(m_i))*(1/(1-rho_i));
+                
             res = first/den_sum;
         end
         
@@ -342,9 +371,10 @@ classdef Network_nClass<handle
         function res = rhoInternal(obj, jStacja, lambda_current)
             res = 0;
             for iKlasa = 1:obj.R
-                denominator_inversed = obj.inversedValueOfVector(obj.stations_Mi{iKlasa}.*obj.stations_m);
-                rho_ir = lambda_current(iKlasa) .* obj.visitRatios{iKlasa} .* (denominator_inversed);
-                res = res + rho_ir(jStacja);
+                %denominator_inversed = obj.inversedValueOfVector(obj.stations_Mi{iKlasa}.*obj.stations_m);
+                denominator_inversed = 1/(obj.stations_Mi{iKlasa}(jStacja).*obj.stations_m(jStacja));
+                rho_ir = lambda_current(iKlasa) .* obj.visitRatios{iKlasa}(jStacja) .* (denominator_inversed);
+                res = res + rho_ir;
             end
         end
     end

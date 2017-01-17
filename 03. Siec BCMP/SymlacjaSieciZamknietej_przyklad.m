@@ -28,9 +28,9 @@ stationForOptymalization{1} = [1, 10, 50];
 %Koszt kolejki:
 C1 = {};
 %Konwencja: [wsp. ceny dla stacji 1, wsp. ceny dla stacji 2, ..]
-C1{1} = [1, 12, 12, 1, 1, 0]; %1 klasa
-C1{2} = [2, 12, 12, 1, 1, 0]; %2 klasa
-C1{3} = [1, 12, 12, 1, 1, 0]; %3 klasa
+C1{1} = [1, 12, 12, 1, 2, 0]; %1 klasa
+C1{2} = [2, 12, 12, 1, 2, 0]; %2 klasa
+C1{3} = [1, 12, 12, 1, 2, 0]; %3 klasa
 
 %Koszt utrzymania stacji:
 %Konwencja: [wsp. ceny dla stacji 1, wsp. ceny dla stacji 2, ..]
@@ -41,7 +41,7 @@ opt.SetOptymalization(stationForOptymalization, 'funkcja1', C1, C2);
 
 %Wykonaj optymalizacje
 siec_opt = opt.FindBest(1);
-
+%siec_opt = siec;
 %% Pokaz wyniki
 disp('Wyniki - porownanie po optymalizacji');
 disp('Liczba stanowisk');
@@ -62,23 +62,27 @@ for i = 1: siec.R
         siec_opt.rho(i, '*')]);
 end
 
-disp('K:')
-for i = 1: siec.R
-    disp(['Klasa ', num2str(i), ':'])
-    disp([siec.K(i, '*');
-        siec_opt.K(i, '*')]);
-end
+if siec.isFiniteQueue() == true && siec_opt.isFiniteQueue() == true 
+    disp('K:')
+    for i = 1: siec.R
+        disp(['Klasa ', num2str(i), ':'])
+        disp([siec.K(i, '*'), sum(siec.K(i, '*'));
+            siec_opt.K(i, '*'), sum(siec_opt.K(i, '*'))]);
+    end
 
-disp('Q:')
-for i = 1: siec.R
-    disp(['Klasa ', num2str(i), ':'])
-    disp([siec.Q(i, '*');
-        siec_opt.Q(i, '*')]);
-end
+    disp('Q:')
+    for i = 1: siec.R
+        disp(['Klasa ', num2str(i), ':'])
+        disp([siec.Q(i, '*');
+            siec_opt.Q(i, '*')]);
+    end
 
-disp('m0:')
-for i = 1: siec.R
-    disp(['Klasa ', num2str(i), ':'])
-    disp([siec.m0(i, '*');
-        siec_opt.m0(i, '*')]);
+    disp('m0:')
+    for i = 1: siec.R
+        disp(['Klasa ', num2str(i), ':'])
+        disp([siec.m0_nowy(i, '*');
+            siec_opt.m0_nowy(i, '*')]);
+    end
+else
+   disp('Nie spelniony warunek ergotycznosci'); 
 end

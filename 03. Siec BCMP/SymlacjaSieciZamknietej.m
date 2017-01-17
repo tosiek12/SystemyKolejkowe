@@ -7,43 +7,6 @@ run('conf_SiecZamknieta');
 %% Oblicz parametry:
 siec.calculateLambdas();
 
-%% Oblicz ocenê rozwiazania:
-%Inicjalizacja klasy optymalizowanej obiektem sieci.
-%Siec posiada obliczone wartosci startowe.
-opt = Opt_main(siec); 
-
-%Okreslenie, ktore systemy maj¹ byc zmieniane:
-% Konwencja: [numer stacji, wartoœæ od, wartoœæ do];
-stationForOptymalization = {};
-stationForOptymalization{1} = [1, 10, 50];
-%stationForOptymalization{1} = [3, 2, 20];
-
-%Okreslenie funkcji oceny. Funkcja jest minimalizowana.
-%Wspolczynnikow dla funkcji oceny rozwiazania:
-%Funkcja 1 - minimalizacja kosztu utrzymania kazdej ze stacji i wielkosci
-%kolejki:
-%Koszt kolejki:
-C1 = {};
-%Konwencja: [wsp. ceny dla stacji 1, wsp. ceny dla stacji 2, ..]
-C1{1} = [1, 12, 12]; %1 klasa
-C1{2} = [2, 12, 12]; %2 klasa
-C1{3} = [1, 12, 12];
-
-%Koszt utrzymania stacji:
-%Konwencja: [wsp. ceny dla stacji 1, wsp. ceny dla stacji 2, ..]
-C2 = [1, 4, 2];
-
-%Funkcja 2 - aby czas obslugi w jednej ze stacji mia³ okreslon¹ wartoœæ:
-%opt.SetOptymalization(stationForOptymalization, 'funkcja2', C1, C2);
-%TODO:  zdefiniowaæ drug¹ funkcê oceny.
-
-%Ustaw parametry:
-opt.SetOptymalization(stationForOptymalization, 'funkcja1', C1, C2);
-%res = opt.utilityFunction(); %testowe obliczenie funkcji oceny.
-
-%Wykonaj optymalizacje
-siec = opt.FindBest(); %do magic!
-
 %% Pokaz wyniki
 disp('Wyniki - porownanie do przykladu z 395 (8.6):');
 disp('tylko wziete 3,4 klasy');
